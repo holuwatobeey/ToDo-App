@@ -20,4 +20,53 @@ db.connect((err)=>{
             console.log("Conected to database, App on port 3000 ")
         })
     }
+});
+
+app.get('/', (req,res)=>{
+    res.sendFile(path.join(__dirname,'index.html'))
+});
+
+app.get("/getTodos", (req, res)=>{
+    db.getDB().collection(collection).find({}).toArray((err, documents)=>{
+        if(err)
+        console.log(err);
+        else{
+            console.log(documents);
+            res.json(documents);
+        }
+    })    
+});
+
+app.put("/:id", (req,res)=>{
+    const todoID = req.params.id;
+    const userInput = req.body;
+    
+    db.getDB().collection(collection).findOneAndUpdate({_id : db.getPrimaryKey(todoID)},{$set:{todo:userInput}},{returnOriginal:false}, (err,result)=>{
+        if(err)
+        console.log(err);
+        else{
+            res.json(result);
+        }
+    })
+});
+
+app.post("/", (req,res)=>{
+    const userInput =  req.body;
+    db.getDB().collection(collection).insertOne(userInput,(err, result)=>{
+        if(err)
+        console.log(err);
+        else{
+            res.json({result: result, document: result.ops[0]})
+        }
+    })
+});
+
+app.delete("/:id", (req,res)=>{
+    todoID = req.params.id;
+    db.getDB().collection(collection).findOneAndDelete({_id : db.getPrimaryKey(todoID)}, (err, result)=>{
+        if(err)
+        console.log(err);
+        else
+        res.json(result);
+    })
 })
